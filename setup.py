@@ -23,6 +23,7 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
     install_requires=[
+        'pyserial',
         'pyperclip',
         'pystray',
         'pyMaxFlight-IMPETUS @ git+https://github.com/Clarkson-IMPETUS/pyMaxFlight',

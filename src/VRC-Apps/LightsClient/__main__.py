@@ -1,8 +1,47 @@
-PORT_LIGHT = "COM5"
-REFRESH_RATE = 30.0 # hz
-SERVER_ADDR = "192.168.1.99"
-AUTO_OFF_TIME = 5 * 60
-AUTO_OFF_THRESH = 0.1
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "-s",
+    "--serialport",
+    default="COM5",
+    help="Name or path of serial port for the Arduino light controller."
+)
+parser.add_argument(
+    "-r",
+    "--refreshrate",
+    default=30,
+    type=float,
+    help="Frequency at which status is requested from the server in hz."
+)
+parser.add_argument(
+    "-a",
+    "--address",
+    default="192.168.1.99",
+    help="Address of WebSockets server."
+)
+parser.add_argument(
+    "-p",
+    "--port",
+    default=8765,
+    type=int,
+    help="Port of WebSockets server."
+)
+parser.add_argument(
+    "--autoofftime",
+    default=5 * 60,
+    type=float,
+    help="""Time (in seconds) for cabin to remain idle before lights are aut\
+            omatically shut off."""
+)
+parser.add_argument(
+    "--autooffthresh",
+    default=0.1,
+    type=float,
+    help="Threshold of movement (in degrees) before idle timer is reset."
+)
+
+args = parser.parse_args()
 
 import asyncio
 from contextlib import suppress
@@ -39,13 +78,13 @@ class App:
         # If the machine is open but idle, turn off the lights
         rollReal = status["roll"]["real"]
         pitchReal = status["pitch"]["real"]
-        rollMoved = abs(rollReal - self.rollPrev) > AUTO_OFF_THRESH
-        pitchMoved = abs(pitchReal - self.pitchPrev) > AUTO_OFF_THRESH
+        rollMoved = abs(rollReal - self.rollPrev) > args.autooffthresh
+        pitchMoved = abs(pitchReal - self.pitchPrev) > args.autooffthresh
         if rollMoved or pitchMoved:
             self.rollPrev = rollReal
             self.pitchPrev = pitchReal
             self.idleTimestamp = time.time()
-        elif (time.time() - self.idleTimestamp) > AUTO_OFF_TIME:
+        elif (time.time() - self.idleTimestamp) > args.autoofftime:
             lightOff = True
 
         # We want the lights ON in an emergency no matter how long the machine is idle
@@ -60,7 +99,7 @@ class App:
     async def loop(self):
         while True:
             with suppress(Exception): self.ws.send("status")
-            await asyncio.sleep(1.0 / REFRESH_RATE)
+            await asyncio.sleep(1.0 / args.refreshrate)
 
     async def main(self):
         # Secondary async task allows ws task to run interrupted
@@ -69,8 +108,8 @@ class App:
         await self.ws.task
 
     def __init__(self):
-        self.ser = serial.Serial(PORT_LIGHT)
-        self.ws = Client(SERVER_ADDR)
+        self.ser = serial.Serial(args.serialport)
+        self.ws = Client(args.address)
         self.ws.register(status=self.statusHandler)
 
         self.gui = GUI(
