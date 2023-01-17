@@ -1,2 +1,10 @@
 # VRC-Apps
 Various applications for the VRC to enhance its capabilities
+
+# Installation
+
+```console
+pip install git+https://github.com/Clarkson-IMPETUS/VRC-Apps
+```
+
+To run applicatons, please see the README in the appropriate directory.
