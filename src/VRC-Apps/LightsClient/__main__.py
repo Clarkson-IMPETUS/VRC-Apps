@@ -11,7 +11,7 @@ import time
 import os
 
 from pyWSConsole import Client
-from GUI import GUI
+from .GUI import GUI
 
 import logging
 logFormat = '%(asctime)s %(levelname)-8s %(message)s'

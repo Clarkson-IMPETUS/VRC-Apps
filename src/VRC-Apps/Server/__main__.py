@@ -3,7 +3,7 @@ import os
 
 from pyMaxFlight.Interface import MotionClient
 from pyWSConsole import Server
-from GUI import GUI
+from .GUI import GUI
 
 import logging
 logFormat = '%(asctime)s %(levelname)-8s %(message)s'
