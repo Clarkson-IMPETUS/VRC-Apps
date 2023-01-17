@@ -25,7 +25,7 @@ setuptools.setup(
     install_requires=[
         'pyperclip',
         'pystray',
-        'git+https://github.com/Clarkson-IMPETUS/pyMaxFlight',
-        'git+https://github.com/heyjoeway/pyWSConsole'
+        'pyMaxFlight @ git+https://github.com/Clarkson-IMPETUS/pyMaxFlight',
+        'pyWSConsole @ git+https://github.com/heyjoeway/pyWSConsole'
     ]
 )
