@@ -1,5 +1,6 @@
 import asyncio
 import os
+from contextlib import suppress
 
 from pyMaxFlight.Interface import MotionClient
 from pyWSConsole import Server
@@ -16,8 +17,10 @@ logging.basicConfig(
 )
 
 ws: Server = None
+gui = None
 
 async def main():
+    global gui
     global ws
     mc = MotionClient()
     ws = Server()
@@ -47,4 +50,5 @@ async def main():
     await ws.task
 
 if __name__=="__main__":
-    asyncio.run(main())
+    with suppress(Exception): asyncio.run(main())
+    gui.trayIcon.stop()

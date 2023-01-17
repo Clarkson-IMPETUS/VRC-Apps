@@ -58,10 +58,10 @@ class GUI:
         if "pystray" not in sys.modules: return
         if "PIL.Image" not in sys.modules: return
 
-        trayIcon = pystray.Icon(
+        self.trayIcon = pystray.Icon(
             title,
             Image.open(iconPath),
             menu=pystray.Menu(self.menu)
         )
 
-        trayIcon.run_detached()    
+        self.trayIcon.run_detached()    

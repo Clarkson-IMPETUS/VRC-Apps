@@ -118,7 +118,8 @@ class App:
             os.path.join(os.path.dirname(__file__), "icon.png")
         )
 
-        asyncio.run(self.main())
+        with suppress(Exception): asyncio.run(self.main())
+        self.gui.trayIcon.stop()
 
 if __name__=="__main__":
     app = App()
