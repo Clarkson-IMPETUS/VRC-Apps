@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="VRC-Apps-IMPETUS",
-    version="1.0.2",
+    version="1.1.0",
     author="Joseph Judge",
     author_email="joe@jojudge.com",
     description="Various applications for the VRC to enhance its capabilities",
