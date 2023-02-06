@@ -24,9 +24,11 @@ async def main():
     global ws
     mc = MotionClient()
     ws = Server()
+    setRollTargetWrapped = lambda x: mc.setRollTarget(float(x))
+    setPitchTargetWrapped = lambda x: mc.setPitchTarget(float(x))
     ws.register(
-        mc.setRollTarget,
-        mc.setPitchTarget,
+        setRollTargetWrapped,
+        setPitchTargetWrapped,
         mc.liftRaise,
         mc.liftStop,
         mc.liftLower,
@@ -39,7 +41,9 @@ async def main():
         mc.counterweightBwd,
         mc.home,
         mc.status,
-        mc.getLogRange
+        # mc.getLogRange
+        r=setRollTargetWrapped, # Alias 
+        p=setPitchTargetWrapped, # Alias 
     )
     ws.start()
     gui = GUI(

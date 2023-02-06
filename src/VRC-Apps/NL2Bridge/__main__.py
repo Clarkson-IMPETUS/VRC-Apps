@@ -1,4 +1,6 @@
 import argparse
+import asyncio
+from contextlib import suppress
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -83,6 +85,8 @@ class Quaternion:
         return math.atan2(2*(self.x*self.y + self.w*self.z), 1.0 - 2*(self.x*self.x + self.z*self.z));
 
 class App:
+    ws: pyWSConsole.Client
+
     def loop(self, nl2: NoLimits2):
         record_number = 0
         get_telemetry = nl2telemetry.message.request.GetTelemetryMessage()
@@ -107,8 +111,9 @@ class App:
                 data.rotation_quaternion_z,
                 data.rotation_quaternion_w
             )
-            self.ws.send(f"setRollTarget,{quat.roll()}")
-            self.ws.send(f"setPitchTarget,{quat.pitch()}")
+            with suppress(Exception):
+                self.ws.send(f"r,{quat.roll():.2f}") # r is an alias for setRollTarget
+                self.ws.send(f"p,{quat.pitch():.2f}") # p is an alias for setPitchTarget
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
@@ -118,19 +123,24 @@ class App:
             sleepTime = max(0, timeLoopTarget - timeLoop) / 1000.0
             time.sleep(sleepTime)
 
-    def __init__(self):
-        self.ws = pyWSConsole.Client(args.wsaddress, port=args.wsport)
+    async def main(self):
+        self.ws.start()
 
         while True:
             try:
                 with NoLimits2(args.nl2address, args.nl2port) as nl2:
+                    logging.info("NL2 connection successful!")
                     self.loop(nl2)
             except Exception as e:
-                logging.warn(e)
+                logging.exception(e)
                 logging.debug(f"Attempting reconnection in {args.retryinterval} seconds")
                 time.sleep(args.retryinterval)
             except KeyboardInterrupt as e:
                 break # Allows exit via Ctrl-C
+
+    def __init__(self):
+        self.ws = pyWSConsole.Client(args.wsaddress, port=args.wsport)
+        asyncio.run(self.main())
 
 if __name__ == '__main__':
     app = App()
