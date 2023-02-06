@@ -24,8 +24,8 @@ async def main():
     global ws
     mc = MotionClient()
     ws = Server()
-    setRollTargetWrapped = lambda x: mc.setRollTarget(float(x))
-    setPitchTargetWrapped = lambda x: mc.setPitchTarget(float(x))
+    setRollTargetWrapped = lambda x: mc.setRollTarget(int(float(x)))
+    setPitchTargetWrapped = lambda x: mc.setPitchTarget(int(float(x)))
     ws.register(
         setRollTargetWrapped,
         setPitchTargetWrapped,
