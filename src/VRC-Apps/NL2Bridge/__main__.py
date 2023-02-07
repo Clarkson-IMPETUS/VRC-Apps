@@ -99,12 +99,8 @@ class App:
                 data.rotation_quaternion_w
             ])
 
-            # Eliminate yaw. This fixes issues with roll at high pitch values
-            _, _, yaw = rotation.as_euler('zxy', degrees=True)
-            rotation_nullyaw = Rotation.from_euler('xyz', [0, -yaw, 0], degrees=True)
-            rotation_final = rotation * rotation_nullyaw
-
-            roll, pitch, _ = rotation_final.as_euler('zxy', degrees=True)
+            # Rotations are intrinsic. Remove yaw first.
+            _, roll, pitch = rotation.as_euler('YZX', degrees=True)
 
             # Quaternion conversion limits angles between -180 to 180.
             # Firstly, we make this angle continuous by removing modulation.
