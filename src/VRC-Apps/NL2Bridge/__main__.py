@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import math
 from contextlib import suppress
 
 parser = argparse.ArgumentParser()
@@ -45,7 +46,7 @@ logFormat = '%(asctime)s %(levelname)-8s %(message)s'
 dateFormat = '%Y-%m-%d %H:%M:%S'
 logging.basicConfig(
     encoding="utf-8",
-    level=logging.DEBUG,
+    level=logging.INFO,
     format=logFormat,
     datefmt=dateFormat
 )
@@ -58,31 +59,14 @@ import pyWSConsole
 
 import time
 import math
+from scipy.spatial.transform import Rotation
 
-class Quaternion:
-    x: float
-    y: float
-    z: float
-    w: float
-
-    def set(self, x, y, z, w):
-        self.x = x
-        self.y = y
-        self.z = z
-        self.w = w
-
-    def pitch(self) -> float:
-        vx = 2*(self.x*self.y + self.w*self.y) 
-        vy = 2*(self.w*self.x - self.y*self.z)
-        vz = 1.0 - 2*(self.x*self.x + self.y*self.y)
-        
-        return math.atan2(vy, math.sqrt(vx*vx + vz*vz))
-
-    def yaw(self) -> float:
-        return math.atan2(2*(self.x*self.y + self.w*self.y), 1.0 - 2*(self.x*self.x + self.y*self.y))
-
-    def roll(self) -> float:
-        return math.atan2(2*(self.x*self.y + self.w*self.z), 1.0 - 2*(self.x*self.x + self.z*self.z));
+def wrap_angle(angle):
+    while angle > 360:
+        angle -= 720 # Wrap to -360
+    while angle < -360:
+        angle += 720 # Wrap to +360
+    return angle
 
 class App:
     ws: pyWSConsole.Client
@@ -90,7 +74,10 @@ class App:
     def loop(self, nl2: NoLimits2):
         record_number = 0
         get_telemetry = nl2telemetry.message.request.GetTelemetryMessage()
-        quat = Quaternion()
+        roll_prev = 0
+        roll_offset = 0
+        pitch_prev = 0
+        pitch_offset = 0
         while True:
             timeLoopStart = time.time()
             get_telemetry.set_request_id(record_number)
@@ -105,15 +92,51 @@ class App:
             if not data.in_play_mode:
                 continue
 
-            quat.set(
+            rotation: Rotation = Rotation.from_quat([
                 data.rotation_quaternion_x,
                 data.rotation_quaternion_y,
                 data.rotation_quaternion_z,
                 data.rotation_quaternion_w
-            )
+            ])
+
+            # Eliminate yaw. This fixes issues with roll at high pitch values
+            _, _, yaw = rotation.as_euler('zxy', degrees=True)
+            rotation_nullyaw = Rotation.from_euler('xyz', [0, -yaw, 0], degrees=True)
+            rotation_final = rotation * rotation_nullyaw
+
+            roll, pitch, _ = rotation_final.as_euler('zxy', degrees=True)
+
+            # Quaternion conversion limits angles between -180 to 180.
+            # Firstly, we make this angle continuous by removing modulation.
+            
+            # Angle overflow
+            if (roll < -90) and (roll_prev > 90):
+                roll_offset += 360
+            # Angle underflow
+            elif (roll > 90) and (roll_prev < -90):
+                roll_offset -= 360
+
+            # Angle overflow
+            if (pitch < -90) and (pitch_prev > 90):
+                pitch_offset += 360
+            # Angle underflow
+            elif (pitch > 90) and (pitch_prev < -90):
+                pitch_offset -= 360
+
+            # We set the previous angles before we modify them with the offset.
+
+            roll_prev = roll
+            pitch_prev = pitch
+
+            # Now, we take this continuous angle and limit it between -360 to 360
+            # since this is what the Motion Client wants.
+
+            roll = int(wrap_angle(roll + roll_offset))
+            pitch = int(wrap_angle(pitch + pitch_offset))
+
             with suppress(Exception):
-                self.ws.send(f"r,{quat.roll():.2f}") # r is an alias for setRollTarget
-                self.ws.send(f"p,{quat.pitch():.2f}") # p is an alias for setPitchTarget
+                self.ws.send(f"r,{-roll}") # r is an alias for setRollTarget
+                self.ws.send(f"p,{pitch}") # p is an alias for setPitchTarget
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
