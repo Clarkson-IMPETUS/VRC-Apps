@@ -27,7 +27,8 @@ setuptools.setup(
         'pyperclip',
         'pystray',
         'pyMaxFlight-IMPETUS @ git+https://github.com/Clarkson-IMPETUS/pyMaxFlight',
-        'pyWSConsole-heyjoeway @ git+https://github.com/heyjoeway/pyWSConsole'
+        'pyWSConsole-heyjoeway @ git+https://github.com/heyjoeway/pyWSConsole',
+        'pynl2telemetry-IMPETUS @ git+https://github.com/Clarkson-IMPETUS/py_nl2telemetry'
     ],
     include_package_data=True,
     package_data={
