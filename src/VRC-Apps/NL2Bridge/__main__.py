@@ -71,7 +71,12 @@ def wrap_angle(angle):
 class App:
     ws: pyWSConsole.Client
 
-    def loop(self, nl2: NoLimits2):
+    #Intended to have lists appended to represent rotations for each frame
+    #Uses an [roll, pitch] while the index of the list is the frame
+    #First frame is 1 not 0, if you look up the rotation for frame zero (before first frame update) you should get no rotation
+    saved_rotations = [[0, 0]]
+
+    def saveRotationsLoop(self, nl2: NoLimits2):
         record_number = 0
         get_telemetry = nl2telemetry.message.request.GetTelemetryMessage()
         roll_prev = 0
@@ -80,6 +85,7 @@ class App:
         pitch_offset = 0
         while True:
             timeLoopStart = time.time()
+            saved_frame = 1
             get_telemetry.set_request_id(record_number)
             nl2.send(get_telemetry)
             data = Answer.get_data(nl2.receive())
@@ -130,13 +136,35 @@ class App:
             roll = int(wrap_angle(roll + roll_offset))
             pitch = int(wrap_angle(pitch + pitch_offset))
 
+
+
             with suppress(Exception):
                 self.ws.send(f"r,{-roll}") # r is an alias for setRollTarget
                 self.ws.send(f"p,{pitch}") # p is an alias for setPitchTarget
+                savedRotations.insert(saved_frame, [-roll, pitch])
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
             timeLoopEnd = time.time()
+            saved_frame += 1
+            timeLoop = timeLoopEnd - timeLoopStart
+            timeLoopTarget = 1000.0 / args.refreshrate
+            sleepTime = max(0, timeLoopTarget - timeLoop) / 1000.0
+            time.sleep(sleepTime)
+
+    def loop(self, nl2: NoLimits2):
+        while True:
+            timeLoopStart = time.time()
+            saved_frame = 1
+
+            with suppress(Exception):
+                self.ws.send(f"r,{saved_rotations[saved_frame[0]]}") # r is an alias for setRollTarget
+                self.ws.send(f"p,{saved_rotations[saved_frame[1]]}") # p is an alias for setPitchTarget
+
+            # To get consistent loop timing, we need to consider how long the loop itself takes.
+            # The better solution to this is to use async/multithreading... maybe one day 
+            timeLoopEnd = time.time()
+            saved_frame += 1
             timeLoop = timeLoopEnd - timeLoopStart
             timeLoopTarget = 1000.0 / args.refreshrate
             sleepTime = max(0, timeLoopTarget - timeLoop) / 1000.0
@@ -149,6 +177,7 @@ class App:
             try:
                 with NoLimits2(args.nl2address, args.nl2port) as nl2:
                     logging.info("NL2 connection successful!")
+                    self.saveRotationsLoop(nl2)
                     self.loop(nl2)
             except Exception as e:
                 logging.exception(e)

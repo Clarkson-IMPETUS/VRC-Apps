@@ -1,5 +1,5 @@
 # VRC-Apps
-Various applications for the VRC to enhance its capabilities
+Various applications for the VRC to enhance its capabilities including a multidimensional array lookup. This allows for faster real time rotation.
 
 # Installation
 
