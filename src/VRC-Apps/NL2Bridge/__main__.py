@@ -141,7 +141,7 @@ class App:
             with suppress(Exception):
                 self.ws.send(f"r,{-roll}") # r is an alias for setRollTarget
                 self.ws.send(f"p,{pitch}") # p is an alias for setPitchTarget
-                savedRotations.insert(saved_frame, [-roll, pitch])
+                saved_rotations.insert(saved_frame, [-roll, pitch])
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
