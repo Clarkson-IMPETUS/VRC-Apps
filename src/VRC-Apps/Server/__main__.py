@@ -27,8 +27,6 @@ async def main():
     setRollTargetWrapped = lambda x: mc.setRollTarget(int(float(x)))
     setPitchTargetWrapped = lambda x: mc.setPitchTarget(int(float(x)))
     ws.register(
-        setRollTargetWrapped,
-        setPitchTargetWrapped,
         mc.liftRaise,
         mc.liftStop,
         mc.liftLower,
@@ -44,6 +42,8 @@ async def main():
         # mc.getLogRange
         r=setRollTargetWrapped, # Alias 
         p=setPitchTargetWrapped, # Alias 
+        setRollTarget=setRollTargetWrapped,
+        setPitchTarget=setPitchTargetWrapped,
     )
     ws.start()
     gui = GUI(
