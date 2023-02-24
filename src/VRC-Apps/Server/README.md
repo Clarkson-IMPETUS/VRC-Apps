@@ -1,6 +1,22 @@
 # VRC-Apps.Server
 
-Exposes functions of the MaxFlight Motion Client over WebSockets
+Exposes the following commands of [pyMaxFlight](https://github.com/Clarkson-IMPETUS/pyMaxFlight) using [pyWSConsole](https://github.com/heyjoeway/pyWSConsole):
+- liftRaise
+- liftStop
+- liftLower
+- start
+- run
+- freeze
+- stop
+- forceRaised
+- counterweightFwd
+- counterweightBwd
+- home
+- status
+- setRollTarget
+  - Parameter: roll (int)
+- setPitchTarget
+  - Parameter: pitch (int)
 
 # Usage
 ```console
