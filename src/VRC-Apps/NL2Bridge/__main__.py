@@ -68,13 +68,15 @@ def wrap_angle(angle):
         angle += 720 # Wrap to +360
     return angle
 
+savedrotations = [[0,0]]
+
 class App:
     ws: pyWSConsole.Client
 
     #Intended to have lists appended to represent rotations for each frame
     #Uses an [roll, pitch] while the index of the list is the frame
     #First frame is 1 not 0, if you look up the rotation for frame zero (before first frame update) you should get no rotation
-    saved_rotations = [[0, 0]]
+    global savedrotations
 
     def saveRotationsLoop(self, nl2: NoLimits2):
         record_number = 0
@@ -139,9 +141,8 @@ class App:
 
 
             with suppress(Exception):
-                self.ws.send(f"r,{-roll}") # r is an alias for setRollTarget
-                self.ws.send(f"p,{pitch}") # p is an alias for setPitchTarget
-                saved_rotations.insert(saved_frame, [-roll, pitch])
+                #Adds the calculated roll and pitch to the savedrotations list, to be looked at later
+                savedrotations.insert(saved_frame, [-roll, pitch])
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
@@ -158,8 +159,8 @@ class App:
             saved_frame = 1
 
             with suppress(Exception):
-                self.ws.send(f"r,{saved_rotations[saved_frame[0]]}") # r is an alias for setRollTarget
-                self.ws.send(f"p,{saved_rotations[saved_frame[1]]}") # p is an alias for setPitchTarget
+                self.ws.send(f"r,{savedrotations[saved_frame[0]]}") # r is an alias for setRollTarget
+                self.ws.send(f"p,{savedrotations[saved_frame[1]]}") # p is an alias for setPitchTarget
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
