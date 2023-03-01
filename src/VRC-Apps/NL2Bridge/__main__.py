@@ -99,7 +99,7 @@ class NL2OrientationProvider(OrientationProvider):
         if isinstance(data, ErrorData):
             raise Exception(data)
 
-        record_number += 1
+        self._record_number += 1
 
         if not data.in_play_mode:
             self._roll = 0
@@ -135,7 +135,6 @@ class NL2OrientationProvider(OrientationProvider):
             self._pitch_offset -= 360
 
         # We set the previous angles before we modify them with the offset.
-
         self._roll_prev = roll
         self._pitch_prev = pitch
 

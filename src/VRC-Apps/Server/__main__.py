@@ -39,11 +39,11 @@ async def main():
         mc.counterweightBwd,
         mc.home,
         mc.status,
-        # mc.getLogRange
+        s=mc.status, # alias
         r=setRollTargetWrapped, # Alias 
         p=setPitchTargetWrapped, # Alias 
         setRollTarget=setRollTargetWrapped,
-        setPitchTarget=setPitchTargetWrapped,
+        setPitchTarget=setPitchTargetWrapped
     )
     ws.start()
     gui = GUI(

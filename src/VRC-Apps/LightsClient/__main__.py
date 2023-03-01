@@ -97,7 +97,7 @@ class App:
 
     async def loop(self):
         while True:
-            with suppress(Exception): self.ws.send("status")
+            with suppress(Exception): self.ws.send("s") # "s" is an alias for "status"
             await asyncio.sleep(1.0 / args.refreshrate)
 
     async def main(self):
