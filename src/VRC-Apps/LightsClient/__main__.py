@@ -10,7 +10,7 @@ parser.add_argument(
 parser.add_argument(
     "-r",
     "--refreshrate",
-    default=30,
+    default=5,
     type=float,
     help="Frequency at which status is requested from the server in hz."
 )
@@ -31,8 +31,7 @@ parser.add_argument(
     "--autoofftime",
     default=5 * 60,
     type=float,
-    help="""Time (in seconds) for cabin to remain idle before lights are aut\
-            omatically shut off."""
+    help="""Time (in seconds) for cabin to remain idle before lights are automatically shut off."""
 )
 parser.add_argument(
     "--autooffthresh",
