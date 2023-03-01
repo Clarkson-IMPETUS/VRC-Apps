@@ -2,7 +2,7 @@ import asyncio
 import os
 from contextlib import suppress
 
-from pyMaxFlight.Interface import MotionClient
+from pyMaxFlight import MotionClient
 from pyWSConsole import Server
 from .GUI import GUI
 
