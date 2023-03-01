@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="VRC-Apps-IMPETUS",
-    version="1.1.1",
+    version="1.1.2",
     author="Joseph Judge",
     author_email="joe@jojudge.com",
     description="Various applications for the VRC to enhance its capabilities",
@@ -23,6 +23,8 @@ setuptools.setup(
     packages=setuptools.find_packages(where="src"),
     python_requires=">=3.6",
     install_requires=[
+        'scipy',
+        'numpy',
         'pyserial',
         'pyperclip',
         'pystray',

@@ -67,20 +67,22 @@ def wrap_angle(angle):
     return angle
 
 class OrientationProvider:
+    _active = False
+    _roll = 0
+    _pitch = 0
+
     def update(self):
         pass
 
     @property
     def roll(self):
-        return 0
+        return self._roll if self._active else 0
 
     @property
     def pitch(self):
-        return 0
+        return self._pitch if self._active else 0
 
 class NL2OrientationProvider(OrientationProvider):
-    _active = False
-
     _get_telemetry = nl2telemetry.message.request.GetTelemetryMessage()
     _record_number = 0
     _roll_prev = 0
