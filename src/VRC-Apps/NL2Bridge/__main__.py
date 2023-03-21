@@ -1,6 +1,4 @@
 import argparse
-import asyncio
-from contextlib import suppress
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -40,6 +38,8 @@ parser.add_argument(
 
 args = parser.parse_args()
 
+import asyncio
+from contextlib import suppress
 import logging
 logFormat = '%(asctime)s %(levelname)-8s %(message)s'
 dateFormat = '%Y-%m-%d %H:%M:%S'
@@ -82,6 +82,10 @@ class OrientationProvider:
     def pitch(self):
         return self._pitch if self._active else 0
 
+    @property
+    def active(self):
+        return self._active
+
 class NL2OrientationProvider(OrientationProvider):
     _get_telemetry = nl2telemetry.message.request.GetTelemetryMessage()
     _record_number = 0
@@ -90,8 +94,9 @@ class NL2OrientationProvider(OrientationProvider):
     _pitch_prev = 0
     _pitch_offset = 0
 
-    def __init__(self, nl2: NoLimits2):
-        self._nl2 = nl2
+    def __init__(self):
+        self._nl2 = NoLimits2(args.nl2address, args.nl2port)
+        logging.info("NL2 connection successful!")
 
     def update(self):
         self._get_telemetry.set_request_id(self._record_number)
@@ -147,36 +152,40 @@ class NL2OrientationProvider(OrientationProvider):
         self._pitch = int(wrap_angle(pitch + self._pitch_offset))
         self._active = True
 
+    def __del__(self):
+        self._nl2.close()
+
 class App:
     ws: pyWSConsole.Client
 
-    def loop(self, nl2: NoLimits2):
-        nl2op = NL2OrientationProvider(nl2)
-        while True:
-            timeLoopStart = time.time()
-            
-            nl2op.update()
+    def loop(self):
+        orientation_provider = NL2OrientationProvider()
 
-            with suppress(Exception):
-                self.ws.send("r", str(-nl2op.roll)) # r is an alias for setRollTarget
-                self.ws.send("p", str(nl2op.pitch)) # p is an alias for setPitchTarget
+        while True:
+            time_loop_start = time.time()
+            
+            active_prev = orientation_provider.active
+            orientation_provider.update()
+            if orientation_provider.active or active_prev:
+                with suppress(Exception):
+                    self.ws.send("r", str(-orientation_provider.roll)) # r is an alias for setRollTarget
+                    self.ws.send("p", str(orientation_provider.pitch)) # p is an alias for setPitchTarget
 
             # To get consistent loop timing, we need to consider how long the loop itself takes.
             # The better solution to this is to use async/multithreading... maybe one day 
-            timeLoopEnd = time.time()
-            timeLoop = timeLoopEnd - timeLoopStart
-            timeLoopTarget = 1000.0 / args.refreshrate
-            sleepTime = max(0, timeLoopTarget - timeLoop) / 1000.0
-            time.sleep(sleepTime)
+            time_loop_end = time.time()
+            time_loop = time_loop_end - time_loop_start
+            time_loop_target = 1000.0 / args.refreshrate
+            sleep_time = max(0, time_loop_target - time_loop) / 1000.0
+            time.sleep(sleep_time)
 
     async def main(self):
+        self.ws = pyWSConsole.Client(args.wsaddress, port=args.wsport)
         self.ws.start()
 
         while True:
             try:
-                with NoLimits2(args.nl2address, args.nl2port) as nl2:
-                    logging.info("NL2 connection successful!")
-                    self.loop(nl2)
+                self.loop()
             except Exception as e:
                 logging.exception(e)
                 logging.debug(f"Attempting reconnection in {args.retryinterval} seconds")
@@ -185,7 +194,6 @@ class App:
                 break # Allows exit via Ctrl-C
 
     def __init__(self):
-        self.ws = pyWSConsole.Client(args.wsaddress, port=args.wsport)
         asyncio.run(self.main())
 
 if __name__ == '__main__':

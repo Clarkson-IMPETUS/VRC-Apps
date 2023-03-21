@@ -12,11 +12,11 @@ def warnOnExcept(warningMsg: str = ""):
     except Exception as e:
         logging.warning(f"{warningMsg} ({e})")
 
-with warnOnExcept("There will be no tray indicator."):
+with warnOnExcept("PIL or pystray missing. There will be no tray indicator."):
     import pystray
     from PIL import Image
 
-with warnOnExcept("Copying the URI from the tray menu will not work."):
+with warnOnExcept("pyperclip missing. Copying the URI from the tray menu will not work."):
     import pyperclip
 
 def restart(*args, **kawrgs):

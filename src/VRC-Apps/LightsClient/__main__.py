@@ -43,10 +43,10 @@ parser.add_argument(
 args = parser.parse_args()
 
 import asyncio
-from contextlib import suppress
+import os
 import serial
 import time
-import os
+from contextlib import suppress
 
 from pyWSConsole import Client
 from .GUI import GUI
