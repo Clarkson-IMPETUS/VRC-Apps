@@ -2,6 +2,14 @@
 
 Sends orientation data from NoLimits 2 to a VRC-Apps.Server instance.
 
+## Requirement Installation
+
+Scipy is require for this application to work. It is not included as a mandatory dependency due to the discontinuation of wheels for 32-bit Windows, which the Control PC requires.
+
+```bash
+pip install scipy
+```
+
 ## Usage
 ```console
 python -m VRC-Apps.NL2Bridge -h

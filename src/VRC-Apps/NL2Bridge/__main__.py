@@ -57,7 +57,11 @@ from nl2telemetry import NoLimits2
 import pyWSConsole
 
 import time
-from scipy.spatial.transform import Rotation
+
+try:
+    from scipy.spatial.transform import Rotation
+except ImportError:
+    raise ImportError("Please install scipy: pip install scipy")
 
 def wrap_angle(angle):
     while angle > 360:
