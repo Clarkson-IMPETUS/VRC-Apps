@@ -3,8 +3,11 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--keepmcopen",
-    default=True,
+    action='store',
     type=bool,
+    default=True,
+    const=True,
+    nargs="?",
     help="Reopen the Motion Client if it is closed."
 )
 
@@ -93,7 +96,7 @@ class App:
             return
 
         while self.running:
-            if self.mc.isMotionClientOpen:
+            if not self.mc.isProcessOpen:
                 warning_msg = "Please keep the Motion Client open. Closing it will reload it automatically."
                 logging.warn(warning_msg)
 
@@ -105,7 +108,12 @@ class App:
                     icon=MboxIcon.MB_ICONEXCLAMATION,
                     other=MboxOther.MB_SETFOREGROUND | MboxOther.MB_TOPMOST
                 )
-            await asyncio.sleep(1)
+
+                # Run motion client and continue
+                path_motionclient = "C:\\Program Files\\MaxFlight\\Motion Platform\\MFMotionClient.exe"
+                os.startfile(path_motionclient)
+
+            await asyncio.sleep(5)
 
     def initLogging(self):
         logFormat = '%(asctime)s %(levelname)-8s %(message)s'
@@ -154,8 +162,7 @@ class App:
             os.path.join(os.path.dirname(__file__), "icon.png")
         )
 
-        asyncio.run(self.loop)
-        
+        asyncio.create_task(self.loop())
         await self.ws.task
         self.running = False
 
